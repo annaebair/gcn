@@ -68,13 +68,18 @@ class MolGraph(object):
 			n_vecs.append(vec)
 		return np.sum(np.array(n_vecs), axis=0)
 
+	def sigmoid(self, x):
+		return 0.5*(np.tanh(x) + 1)
+
 	def create_fingerprint(self):
 		order = np.array(list(self.node_set))
 		initial = nn.Embedding(len(order), EMB_SIZE)
 		for node in self.nodes:
 			vec = self.get_initial_vector(node, order, initial)
 			n_vecs = self.get_neighbor_sum(node, order, initial)
-			self.fingerprint = np.sum([self.fingerprint, vec, n_vecs], axis=0)
+			vec_sum = np.sum([vec, n_vecs], axis=0)
+			sig = self.sigmoid(vec_sum)
+			self.fingerprint = np.sum([self.fingerprint, sig], axis=0)
 
 
 def load_data():

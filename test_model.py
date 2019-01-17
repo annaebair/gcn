@@ -4,13 +4,11 @@ import numpy as np
 import pandas as pd
 import torch
 from torch import nn, optim
-import torch.nn.functional as F
-
-from rdkit import Chem
 
 from graph_rep import MolGraph
 from gcn import GCN
 
+EMB_SIZE = 5
 
 def load_data():
 	lst = []
@@ -28,24 +26,12 @@ def load_data():
 	y = list(df['vals'])
 	return x, y
 
-def basic_fingerprint_embedding():
-	x, y = load_data()
-	fingerprints = []
-	for i in range(10):
-		g = MolGraph(x[i])
-		if g is not None:
-			g.create_fingerprint()
-			f = g.fingerprint
-			fingerprints.append(f)
-	fingerprints = np.array(fingerprints)
-	print(fingerprints)
-
 def simple_gcn():
-	g = MolGraph('CN1CCC[C@H]1c2cccnc2')
-	g.create_fingerprint()
-	data = g.get_initial()
+	g = MolGraph('CN1CCC[C@H]1c2cccnc2', EMB_SIZE)
+	data = g.get_initial() # Random vector for each atom/bond
+	adj = g.get_adj_mat()
 	num_nodes, vec_size = data.shape
-	model = GCN(vec_size, 5, 5, g)
+	model = GCN(adj, EMB_SIZE)
 	out = model(data)
 	print(out)
 

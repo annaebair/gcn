@@ -1,14 +1,7 @@
 import math
 import numpy as np
-import pandas as pd
 import torch
-from torch import nn, optim
-import torch.nn.functional as F
-
-from rdkit import Chem
-
-from adj_rep import AdjacencyRep
-from graph_rep import MolGraph
+from torch import nn
 
 
 class GraphConv(nn.Module):
@@ -30,17 +23,23 @@ class GraphConv(nn.Module):
 
 class GraphPool(nn.Module):
 	"""
-	Pool layer that combines a node and its neighbors.
+	Pool layer that sums a node and its neighbors.
 	"""
-	def __init__(self, graph):
+	def __init__(self, adj):
 		super().__init__()
-		self.graph = graph
+		self.adj = adj
+
+	def _sum_neighbors(self, x):
+		updated = []
+		for idx in range(self.adj.shape[0]):
+			node_vec = np.array(x[idx].detach().numpy())
+			n_idx = np.where(self.adj[idx] == 1)[0]
+			neighbor_vecs = [x[n_idx[i]].detach().numpy() for i in range(len(n_idx))]
+			neighbor_vecs.append(node_vec)
+			neighbor_vecs = np.array(neighbor_vecs)
+			s = np.sum(neighbor_vecs, axis=0)
+			updated.append(s)
+		return np.array(updated)
 
 	def forward(self, x):
-		vecs = []
-		for node in self.graph.nodes:
-			node_vec = self.graph.get_initial_vector(node) 
-			neighbors = self.graph.get_neighbor_sum(node)
-			vec_sum = np.sum([node_vec, neighbors], axis=0)
-			vecs.append(vec_sum)
-		return np.array(vecs)
+		return self._sum_neighbors(x)

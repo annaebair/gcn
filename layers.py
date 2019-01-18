@@ -9,14 +9,12 @@ class GraphConv(nn.Module):
 	Convolutional layer.
 	Must specify the dimensions of the data for each layer.
 	"""
-	def __init__(self, feat_size, out_dim):
+	def __init__(self, emb_size):
 		super().__init__() 
-		self.feat_size = feat_size
-		self.out_dim = out_dim
-		self.weight = nn.Parameter(torch.randn(feat_size, out_dim)) / math.sqrt(feat_size)
+		self.emb_size = emb_size
+		self.weight = nn.Parameter(torch.randn(emb_size, emb_size)) / math.sqrt(emb_size)
 
 	def forward(self, data):
-		# data must be n x feat_size matrix
 		out = torch.mm(torch.FloatTensor(data), self.weight)
 		return out
 
@@ -25,15 +23,14 @@ class GraphPool(nn.Module):
 	"""
 	Pool layer that sums a node and its neighbors.
 	"""
-	def __init__(self, adj):
+	def __init__(self):
 		super().__init__()
-		self.adj = adj
 
-	def _sum_neighbors(self, x):
+	def _sum_neighbors(self, x, adj):
 		updated = []
-		for idx in range(self.adj.shape[0]):
+		for idx in range(adj.shape[0]):
 			node_vec = np.array(x[idx].detach().numpy())
-			n_idx = np.where(self.adj[idx] == 1)[0]
+			n_idx = np.where(adj[idx] == 1)[0]
 			neighbor_vecs = [x[n_idx[i]].detach().numpy() for i in range(len(n_idx))]
 			neighbor_vecs.append(node_vec)
 			neighbor_vecs = np.array(neighbor_vecs)
@@ -41,5 +38,5 @@ class GraphPool(nn.Module):
 			updated.append(s)
 		return np.array(updated)
 
-	def forward(self, x):
-		return self._sum_neighbors(x)
+	def forward(self, x, adj):
+		return self._sum_neighbors(x, adj)

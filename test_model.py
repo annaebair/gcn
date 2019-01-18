@@ -80,7 +80,7 @@ def gcn_drug_embedder():
 	reps, sym_to_idx = preprocess()
 	vocab_size = len(sym_to_idx)
 	model = GCN_Drug_Embedder(vocab_size, EMB_SIZE)
-	for idx, adj in reps[:10]:
+	for idx, adj in reps[:1]:
 		out = model(idx, adj)
 		print(out)
 

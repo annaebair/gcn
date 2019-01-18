@@ -29,14 +29,13 @@ class GraphPool(nn.Module):
 	def _sum_neighbors(self, x, adj):
 		updated = []
 		for idx in range(adj.shape[0]):
-			node_vec = np.array(x[idx].detach().numpy())
 			n_idx = np.where(adj[idx] == 1)[0]
-			neighbor_vecs = [x[n_idx[i]].detach().numpy() for i in range(len(n_idx))]
-			neighbor_vecs.append(node_vec)
-			neighbor_vecs = np.array(neighbor_vecs)
-			s = np.sum(neighbor_vecs, axis=0)
+			neighbor_vecs = [x[n_idx[i]] for i in range(len(n_idx))]
+			all_vecs = neighbor_vecs + [x[idx]]
+			c = torch.stack(all_vecs, 0)
+			s = torch.sum(c, 0)
 			updated.append(s)
-		return np.array(updated)
+		return torch.stack(updated, 0)
 
 	def forward(self, x, adj):
 		return self._sum_neighbors(x, adj)

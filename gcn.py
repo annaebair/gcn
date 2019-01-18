@@ -27,9 +27,6 @@ class GCN(nn.Module):
 
 
 class GCN_Drug_Embedder(nn.Module):
-	"""
-
-	"""
 	def __init__(self, vocab_size, emb_size):
 		super().__init__()
 		self.vocab_size = vocab_size
@@ -44,9 +41,12 @@ class GCN_Drug_Embedder(nn.Module):
 
 	def forward(self, indices, adj_mat):
 		# TODO: add activations/make this non trivial
+		# This works for a single smiles string; modify so it can process a 
+		# list of (indices, adj_mat) tuples?
 		x = self.embed(torch.LongTensor(indices))
 		x = self.gc1(x)
 		x = self.pool1(x, adj_mat)
 		x = self.gc2(x)
-		x = self.pool1(x, adj_mat)
-		return np.sum(x, axis=0)
+		x = self.pool2(x, adj_mat)
+
+		return torch.sum(x, 0)
